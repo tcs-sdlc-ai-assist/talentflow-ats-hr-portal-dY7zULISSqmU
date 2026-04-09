@@ -2,14 +2,22 @@
   "version": 2,
   "builds": [
     {
-      "src": "main.py",
-      "use": "@vercel/python"
+      "src": "app/main.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb",
+        "runtime": "python3.11"
+      }
     }
   ],
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/main.py"
+      "destination": "/app/main.py"
     }
-  ]
+  ],
+  "env": {
+    "ENVIRONMENT": "production",
+    "DEBUG": "false"
+  }
 }
