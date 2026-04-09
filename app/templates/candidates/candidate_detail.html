@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}{{ candidate.name }} — TalentFlow ATS{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <nav class="flex items-center space-x-2 text-sm text-gray-500" aria-label="Breadcrumb">
+        <a href="/candidates" class="hover:text-indigo-600 transition-colors">Candidates</a>
+        <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-gray-900 font-medium">{{ candidate.name }}</span>
+    </nav>
+</div>
+
+<div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+    <div class="flex-1">
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">{{ candidate.name }}</h1>
+                        <p class="mt-1 text-sm text-gray-500">Added {{ candidate.created_at.strftime('%B %d, %Y') }}</p>
+                    </div>
+                    <a href="/candidates/{{ candidate.id }}/edit" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                        <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit
+                    </a>
+                </div>
+            </div>
+
+            <div class="px-6 py-5">
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Email</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            <a href="mailto:{{ candidate.email }}" class="text-indigo-600 hover:text-indigo-500 transition-colors">{{ candidate.email }}</a>
+                        </dd>
+                    </div>
+                    {% if candidate.phone %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ candidate.phone }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if candidate.linkedin_url %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">LinkedIn</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            <a href="{{ candidate.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-500 transition-colors inline-flex items-center">
+                                {{ candidate.linkedin_url }}
+                                <svg class="ml-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </dd>
+                    </div>
+                    {% endif %}
+                    {% if candidate.resume %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Resume</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ candidate.resume }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if candidate.source %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Source</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">{{ candidate.source }}</span>
+                        </dd>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ candidate.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="mt-6 bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Skills</h2>
+            </div>
+            <div class="px-6 py-5">
+                {% if skills and skills|length > 0 %}
+                <div class="flex flex-wrap gap-2 mb-4">
+                    {% for skill in skills %}
+                    <span class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+                        {{ skill.name }}
+                        <form action="/candidates/{{ candidate.id }}/skills/{{ skill.id }}/remove" method="POST" class="inline ml-1.5">
+                            <button type="submit" class="inline-flex items-center rounded-full p-0.5 text-indigo-400 hover:bg-indigo-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" aria-label="Remove skill {{ skill.name }}">
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </form>
+                    </span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-sm text-gray-500 mb-4">No skills added yet.</p>
+                {% endif %}
+
+                <form action="/candidates/{{ candidate.id }}/skills" method="POST" class="flex items-center gap-2">
+                    <label for="skill_name" class="sr-only">Add a skill</label>
+                    <input type="text" id="skill_name" name="skill_name" placeholder="Enter skill name..." required class="block w-full max-w-xs rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                    <button type="submit" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                        <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-6 bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Application History</h2>
+            </div>
+            {% if applications and applications|length > 0 %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Title</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for application in applications %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {% if application.job %}
+                                <a href="/jobs/{{ application.job.id }}" class="text-indigo-600 hover:text-indigo-500 transition-colors">{{ application.job.title }}</a>
+                                {% else %}
+                                <span class="text-gray-400">Unknown Job</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {% if application.status == 'Applied' %}
+                                <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">{{ application.status }}</span>
+                                {% elif application.status == 'Screening' %}
+                                <span class="inline-flex items-center rounded-full bg-yellow-50 px-2.5 py-0.5 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">{{ application.status }}</span>
+                                {% elif application.status == 'Interviewing' %}
+                                <span class="inline-flex items-center rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">{{ application.status }}</span>
+                                {% elif application.status == 'Offered' %}
+                                <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-600/20">{{ application.status }}</span>
+                                {% elif application.status == 'Hired' %}
+                                <span class="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">{{ application.status }}</span>
+                                {% elif application.status == 'Rejected' %}
+                                <span class="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">{{ application.status }}</span>
+                                {% else %}
+                                <span class="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">{{ application.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ application.created_at.strftime('%b %d, %Y') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ application.updated_at.strftime('%b %d, %Y') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <a href="/applications/{{ application.id }}" class="text-indigo-600 hover:text-indigo-500 font-medium transition-colors">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="px-6 py-12 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-semibold text-gray-900">No applications</h3>
+                <p class="mt-1 text-sm text-gray-500">This candidate has not been applied to any jobs yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

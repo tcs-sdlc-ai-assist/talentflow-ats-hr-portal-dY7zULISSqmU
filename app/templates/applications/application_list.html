@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Applications — TalentFlow ATS{% endblock %}
+
+{% block content %}
+<div class="sm:flex sm:items-center sm:justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Applications</h1>
+        <p class="mt-1 text-sm text-gray-500">Track and manage candidate applications across your hiring pipeline.</p>
+    </div>
+    <div class="mt-4 sm:mt-0">
+        <a href="/applications/create" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+            <svg class="mr-2 -ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+            </svg>
+            Create Application
+        </a>
+    </div>
+</div>
+
+<div class="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <form method="GET" action="/applications" class="sm:flex sm:items-center sm:gap-4">
+        <div class="flex-1">
+            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
+            <select id="status" name="status" class="block w-full rounded-md border-gray-300 bg-white py-2 pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border">
+                <option value="" {% if not status_filter %}selected{% endif %}>All Statuses</option>
+                <option value="Applied" {% if status_filter == "Applied" %}selected{% endif %}>Applied</option>
+                <option value="Screening" {% if status_filter == "Screening" %}selected{% endif %}>Screening</option>
+                <option value="Interviewing" {% if status_filter == "Interviewing" %}selected{% endif %}>Interviewing</option>
+                <option value="Offered" {% if status_filter == "Offered" %}selected{% endif %}>Offered</option>
+                <option value="Hired" {% if status_filter == "Hired" %}selected{% endif %}>Hired</option>
+                <option value="Rejected" {% if status_filter == "Rejected" %}selected{% endif %}>Rejected</option>
+            </select>
+        </div>
+        <div class="mt-3 sm:mt-0 sm:self-end">
+            <button type="submit" class="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                <svg class="mr-2 -ml-0.5 h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                </svg>
+                Filter
+            </button>
+        </div>
+        {% if status_filter %}
+        <div class="mt-3 sm:mt-0 sm:self-end">
+            <a href="/applications" class="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                Clear
+            </a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+    {% if applications and applications | length > 0 %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Candidate
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Job Title
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Applied Date
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for application in applications %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                                <span class="text-sm font-medium text-indigo-700">
+                                    {{ application.candidate.name[:1] | upper if application.candidate and application.candidate.name else "?" }}
+                                </span>
+                            </div>
+                            <div class="ml-3">
+                                <a href="/candidates/{{ application.candidate.id }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors">
+                                    {{ application.candidate.name if application.candidate else "Unknown" }}
+                                </a>
+                                <p class="text-xs text-gray-500">{{ application.candidate.email if application.candidate else "" }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="/jobs/{{ application.job.id }}" class="text-sm text-gray-900 hover:text-indigo-600 transition-colors">
+                            {{ application.job.title if application.job else "Unknown" }}
+                        </a>
+                        <p class="text-xs text-gray-500">{{ application.job.department if application.job else "" }}</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if application.status == "Applied" %}
+                        <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                            Applied
+                        </span>
+                        {% elif application.status == "Screening" %}
+                        <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                            Screening
+                        </span>
+                        {% elif application.status == "Interviewing" %}
+                        <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                            Interviewing
+                        </span>
+                        {% elif application.status == "Offered" %}
+                        <span class="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+                            Offered
+                        </span>
+                        {% elif application.status == "Hired" %}
+                        <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            Hired
+                        </span>
+                        {% elif application.status == "Rejected" %}
+                        <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                            Rejected
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                            {{ application.status }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ application.created_at.strftime("%b %d, %Y") if application.created_at else "—" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex items-center justify-end space-x-3">
+                            <a href="/applications/{{ application.id }}" class="text-indigo-600 hover:text-indigo-900 transition-colors" title="View application">
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                                    <path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                </svg>
+                                <span class="sr-only">View</span>
+                            </a>
+                            {% if user and user.role in ['System Admin', 'HR Recruiter', 'Hiring Manager'] %}
+                            <a href="/applications/{{ application.id }}/edit" class="text-gray-500 hover:text-gray-700 transition-colors" title="Edit application">
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+                                </svg>
+                                <span class="sr-only">Edit</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12 px-4">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        </svg>
+        <h3 class="mt-3 text-sm font-semibold text-gray-900">No applications found</h3>
+        <p class="mt-1 text-sm text-gray-500">
+            {% if status_filter %}
+            No applications match the selected status filter. Try clearing the filter.
+            {% else %}
+            Get started by creating a new application.
+            {% endif %}
+        </p>
+        <div class="mt-6">
+            <a href="/applications/create" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                <svg class="mr-2 -ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+                </svg>
+                Create Application
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

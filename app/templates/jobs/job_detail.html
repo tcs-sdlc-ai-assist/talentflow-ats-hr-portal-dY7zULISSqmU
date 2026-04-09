@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} — TalentFlow ATS{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <nav class="flex" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="/jobs" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    Jobs
+                </a>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="ml-1 text-sm font-medium text-gray-700 md:ml-2">{{ job.title }}</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+</div>
+
+<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-200">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h1 class="text-2xl font-bold text-gray-900 truncate">{{ job.title }}</h1>
+                    {% if job.status == 'Draft' %}
+                    <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-0.5 text-sm font-medium text-gray-700">
+                        Draft
+                    </span>
+                    {% elif job.status == 'Published' %}
+                    <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 text-sm font-medium text-green-700">
+                        Published
+                    </span>
+                    {% elif job.status == 'Closed' %}
+                    <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-0.5 text-sm font-medium text-red-700">
+                        Closed
+                    </span>
+                    {% else %}
+                    <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-700">
+                        {{ job.status }}
+                    </span>
+                    {% endif %}
+                </div>
+                <p class="mt-1 text-sm text-gray-500">
+                    {{ job.department }} &middot; {{ job.location }} &middot; {{ job.type }}
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                {% if user and user.role in ['System Admin', 'HR Recruiter', 'Hiring Manager'] %}
+                <a href="/jobs/{{ job.id }}/edit" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors">
+                    <svg class="w-4 h-4 mr-1.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Edit
+                </a>
+
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden')" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4 mr-1.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                        Change Status
+                        <svg class="w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div class="hidden absolute right-0 z-10 mt-2 w-44 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical">
+                        <div class="py-1" role="none">
+                            {% if job.status != 'Draft' %}
+                            <form action="/jobs/{{ job.id }}/status" method="POST">
+                                <input type="hidden" name="status" value="Draft">
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors" role="menuitem">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
+                                    Set as Draft
+                                </button>
+                            </form>
+                            {% endif %}
+                            {% if job.status != 'Published' %}
+                            <form action="/jobs/{{ job.id }}/status" method="POST">
+                                <input type="hidden" name="status" value="Published">
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors" role="menuitem">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                                    Set as Published
+                                </button>
+                            </form>
+                            {% endif %}
+                            {% if job.status != 'Closed' %}
+                            <form action="/jobs/{{ job.id }}/status" method="POST">
+                                <input type="hidden" name="status" value="Closed">
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors" role="menuitem">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                                    Set as Closed
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <a href="/applications?job_id={{ job.id }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    View Pipeline
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-6 py-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <dt class="text-sm font-medium text-gray-500">Department</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900">{{ job.department }}</dd>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <dt class="text-sm font-medium text-gray-500">Location</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900">{{ job.location }}</dd>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <dt class="text-sm font-medium text-gray-500">Employment Type</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900">{{ job.type }}</dd>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <dt class="text-sm font-medium text-gray-500">Salary Range</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900">
+                    {% if job.salary_min is not none and job.salary_max is not none %}
+                        ${{ "{:,}".format(job.salary_min) }} — ${{ "{:,}".format(job.salary_max) }}
+                    {% elif job.salary_min is not none %}
+                        From ${{ "{:,}".format(job.salary_min) }}
+                    {% elif job.salary_max is not none %}
+                        Up to ${{ "{:,}".format(job.salary_max) }}
+                    {% else %}
+                        Not specified
+                    {% endif %}
+                </dd>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <dt class="text-sm font-medium text-gray-500">Created By</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {% if creator %}
+                        <span class="font-semibold">{{ creator.full_name if creator.full_name else creator.username }}</span>
+                        {% if creator.email %}
+                        <span class="text-gray-500">({{ creator.email }})</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-gray-400 italic">Unknown</span>
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <dt class="text-sm font-medium text-gray-500">Hiring Manager</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {% if hiring_manager %}
+                        <span class="font-semibold">{{ hiring_manager.full_name if hiring_manager.full_name else hiring_manager.username }}</span>
+                        {% if hiring_manager.email %}
+                        <span class="text-gray-500">({{ hiring_manager.email }})</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-gray-400 italic">Not assigned</span>
+                    {% endif %}
+                </dd>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <dt class="text-sm font-medium text-gray-500">Created At</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {{ job.created_at.strftime('%B %d, %Y at %I:%M %p') if job.created_at else 'N/A' }}
+                </dd>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {{ job.updated_at.strftime('%B %d, %Y at %I:%M %p') if job.updated_at else 'N/A' }}
+                </dd>
+            </div>
+        </div>
+
+        {% if application_count is defined %}
+        <div class="mb-8">
+            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-medium text-indigo-800">Applications</h3>
+                        <p class="mt-1 text-2xl font-bold text-indigo-900">{{ application_count }}</p>
+                        <p class="text-sm text-indigo-600">candidate{{ 's' if application_count != 1 else '' }} in pipeline</p>
+                    </div>
+                    <a href="/applications?job_id={{ job.id }}" class="text-sm font-medium text-indigo-700 hover:text-indigo-900 transition-colors">
+                        View all &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="border-t border-gray-200 pt-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Job Description</h2>
+            <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                {% if job.description %}
+                    {{ job.description | replace('\n', '<br>') | safe }}
+                {% else %}
+                    <p class="text-gray-400 italic">No description provided.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-6 flex items-center justify-between">
+    <a href="/jobs" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Jobs
+    </a>
+    {% if user and user.role in ['System Admin', 'HR Recruiter', 'Hiring Manager'] %}
+    <a href="/applications/create?job_id={{ job.id }}" class="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Application
+    </a>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('click', function(event) {
+        document.querySelectorAll('[role="menu"]').forEach(function(menu) {
+            if (!menu.previousElementSibling.contains(event.target) && !menu.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+    });
+</script>
+{% endblock %}

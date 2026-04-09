@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Log — TalentFlow ATS{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Audit Log</h1>
+            <p class="mt-1 text-sm text-gray-500">Complete record of all system actions for compliance and accountability.</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <span class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700">
+                {{ total }} total entries
+            </span>
+        </div>
+    </div>
+</div>
+
+<form method="GET" action="/audit-log" class="mb-6 bg-white shadow rounded-lg p-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+            <label for="filter_action" class="block text-sm font-medium text-gray-700">Action</label>
+            <input type="text" name="action" id="filter_action" value="{{ filters.action if filters and filters.action else '' }}" placeholder="e.g. Job Published" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-3 py-2 border">
+        </div>
+        <div>
+            <label for="filter_user" class="block text-sm font-medium text-gray-700">User</label>
+            <input type="text" name="user_name" id="filter_user" value="{{ filters.user_name if filters and filters.user_name else '' }}" placeholder="Username" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-3 py-2 border">
+        </div>
+        <div>
+            <label for="filter_entity_type" class="block text-sm font-medium text-gray-700">Entity Type</label>
+            <input type="text" name="entity_type" id="filter_entity_type" value="{{ filters.entity_type if filters and filters.entity_type else '' }}" placeholder="e.g. Job, Candidate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-3 py-2 border">
+        </div>
+        <div class="flex items-end space-x-2">
+            <button type="submit" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                Filter
+            </button>
+            <a href="/audit-log" class="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                Clear
+            </a>
+        </div>
+    </div>
+</form>
+
+<div class="bg-white shadow rounded-lg overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200" role="table" aria-label="Audit log entries">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Timestamp
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        User
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Action
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Entity Type
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Entity ID
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Details
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% if logs and logs|length > 0 %}
+                    {% for log in logs %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <time datetime="{{ log.created_at.isoformat() if log.created_at else '' }}">
+                                {{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else 'N/A' }}
+                            </time>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {% if log.actor %}
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                                        <span class="text-xs font-medium text-indigo-700">{{ log.actor.full_name[:2]|upper if log.actor.full_name else log.actor.username[:2]|upper }}</span>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="font-medium">{{ log.actor.full_name if log.actor.full_name else log.actor.username }}</p>
+                                        <p class="text-xs text-gray-400">{{ log.actor.role }}</p>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="text-gray-400">System</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            {% if 'Created' in log.action or 'Added' in log.action %}
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">{{ log.action }}</span>
+                            {% elif 'Updated' in log.action or 'Changed' in log.action %}
+                                <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">{{ log.action }}</span>
+                            {% elif 'Deleted' in log.action or 'Removed' in log.action %}
+                                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">{{ log.action }}</span>
+                            {% else %}
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">{{ log.action }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ log.entity_type if log.entity_type else '—' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                            {% if log.entity_id %}
+                                <span title="{{ log.entity_id }}">{{ log.entity_id[:8] }}…</span>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="{{ log.details if log.details else '' }}">
+                            {{ log.details if log.details else '—' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-semibold text-gray-900">No audit log entries found</h3>
+                            <p class="mt-1 text-sm text-gray-500">
+                                {% if filters and (filters.action or filters.user_name or filters.entity_type) %}
+                                    Try adjusting your filters to see more results.
+                                {% else %}
+                                    Audit log entries will appear here as actions are performed in the system.
+                                {% endif %}
+                            </p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total and total > 0 %}
+    <nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6" aria-label="Audit log pagination">
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Showing
+                    <span class="font-medium">{{ ((page - 1) * page_size) + 1 }}</span>
+                    to
+                    <span class="font-medium">{{ [page * page_size, total] | min }}</span>
+                    of
+                    <span class="font-medium">{{ total }}</span>
+                    results
+                </p>
+            </div>
+            <div>
+                <ul class="inline-flex -space-x-px rounded-md shadow-sm" role="list">
+                    {% if page > 1 %}
+                    <li>
+                        <a href="/audit-log?page={{ page - 1 }}&page_size={{ page_size }}{% if filters and filters.action %}&action={{ filters.action }}{% endif %}{% if filters and filters.user_name %}&user_name={{ filters.user_name }}{% endif %}{% if filters and filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}" class="relative inline-flex items-center rounded-l-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Previous page">
+                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li>
+                        <span class="relative inline-flex items-center rounded-l-md px-3 py-2 text-sm font-semibold text-gray-300 ring-1 ring-inset ring-gray-300 cursor-not-allowed" aria-disabled="true" aria-label="Previous page">
+                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                    </li>
+                    {% endif %}
+
+                    {% set total_pages = (total + page_size - 1) // page_size %}
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p == page %}
+                        <li>
+                            <span class="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-indigo-600 focus:z-20" aria-current="page">{{ p }}</span>
+                        </li>
+                        {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                        <li>
+                            <a href="/audit-log?page={{ p }}&page_size={{ page_size }}{% if filters and filters.action %}&action={{ filters.action }}{% endif %}{% if filters and filters.user_name %}&user_name={{ filters.user_name }}{% endif %}{% if filters and filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Page {{ p }}">{{ p }}</a>
+                        </li>
+                        {% elif p == page - 3 or p == page + 3 %}
+                        <li>
+                            <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300" aria-hidden="true">&hellip;</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page < total_pages %}
+                    <li>
+                        <a href="/audit-log?page={{ page + 1 }}&page_size={{ page_size }}{% if filters and filters.action %}&action={{ filters.action }}{% endif %}{% if filters and filters.user_name %}&user_name={{ filters.user_name }}{% endif %}{% if filters and filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}" class="relative inline-flex items-center rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Next page">
+                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li>
+                        <span class="relative inline-flex items-center rounded-r-md px-3 py-2 text-sm font-semibold text-gray-300 ring-1 ring-inset ring-gray-300 cursor-not-allowed" aria-disabled="true" aria-label="Next page">
+                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="flex flex-1 justify-between sm:hidden">
+            {% if page > 1 %}
+            <a href="/audit-log?page={{ page - 1 }}&page_size={{ page_size }}{% if filters and filters.action %}&action={{ filters.action }}{% endif %}{% if filters and filters.user_name %}&user_name={{ filters.user_name }}{% endif %}{% if filters and filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Previous
+            </a>
+            {% else %}
+            <span class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-300 cursor-not-allowed">
+                Previous
+            </span>
+            {% endif %}
+
+            <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700">
+                Page {{ page }} of {{ total_pages }}
+            </span>
+
+            {% if page < total_pages %}
+            <a href="/audit-log?page={{ page + 1 }}&page_size={{ page_size }}{% if filters and filters.action %}&action={{ filters.action }}{% endif %}{% if filters and filters.user_name %}&user_name={{ filters.user_name }}{% endif %}{% if filters and filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Next
+            </a>
+            {% else %}
+            <span class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-300 cursor-not-allowed">
+                Next
+            </span>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

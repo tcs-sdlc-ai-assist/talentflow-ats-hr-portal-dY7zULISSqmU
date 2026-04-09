@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}{% if candidate %}Edit Candidate — {{ candidate.name }}{% else %}Add New Candidate{% endif %} | TalentFlow ATS{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <nav class="flex items-center space-x-2 text-sm text-gray-500" aria-label="Breadcrumb">
+            <a href="/candidates" class="hover:text-indigo-600 transition-colors">Candidates</a>
+            <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+            <span class="text-gray-700 font-medium">{% if candidate %}Edit Candidate{% else %}Add New Candidate{% endif %}</span>
+        </nav>
+    </div>
+
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="px-6 py-5 border-b border-gray-200">
+            <h1 class="text-xl font-semibold text-gray-900">
+                {% if candidate %}Edit Candidate{% else %}Add New Candidate{% endif %}
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">
+                {% if candidate %}Update the candidate's information below.{% else %}Fill in the candidate's details to add them to the system.{% endif %}
+            </p>
+        </div>
+
+        <form method="POST" action="{% if candidate %}/candidates/{{ candidate.id }}/edit{% else %}/candidates/create{% endif %}" class="px-6 py-5 space-y-6" novalidate>
+            {% if errors %}
+            <div class="rounded-md bg-red-50 border border-red-200 p-4" role="alert">
+                <div class="flex">
+                    <svg class="h-5 w-5 text-red-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                    </svg>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+                        <ul class="mt-2 list-disc list-inside text-sm text-red-700 space-y-1">
+                            {% for error in errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                    <label for="first_name" class="block text-sm font-medium text-gray-700">
+                        First Name <span class="text-red-500" aria-hidden="true">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="first_name"
+                        id="first_name"
+                        required
+                        value="{{ form_data.first_name if form_data and form_data.first_name else (candidate.first_name if candidate and candidate.first_name else '') }}"
+                        placeholder="e.g. Jane"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+                        aria-required="true"
+                    />
+                </div>
+
+                <div>
+                    <label for="last_name" class="block text-sm font-medium text-gray-700">
+                        Last Name <span class="text-red-500" aria-hidden="true">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="last_name"
+                        id="last_name"
+                        required
+                        value="{{ form_data.last_name if form_data and form_data.last_name else (candidate.last_name if candidate and candidate.last_name else '') }}"
+                        placeholder="e.g. Doe"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+                        aria-required="true"
+                    />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">
+                        Email Address <span class="text-red-500" aria-hidden="true">*</span>
+                    </label>
+                    <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        required
+                        value="{{ form_data.email if form_data and form_data.email else (candidate.email if candidate and candidate.email else '') }}"
+                        placeholder="e.g. jane.doe@example.com"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+                        aria-required="true"
+                    />
+                </div>
+
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700">
+                        Phone Number
+                    </label>
+                    <input
+                        type="tel"
+                        name="phone"
+                        id="phone"
+                        value="{{ form_data.phone if form_data and form_data.phone else (candidate.phone if candidate and candidate.phone else '') }}"
+                        placeholder="e.g. +1 (555) 123-4567"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+                    />
+                </div>
+            </div>
+
+            <div>
+                <label for="linkedin_url" class="block text-sm font-medium text-gray-700">
+                    LinkedIn URL
+                </label>
+                <div class="mt-1 flex rounded-md shadow-sm">
+                    <span class="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                    </span>
+                    <input
+                        type="url"
+                        name="linkedin_url"
+                        id="linkedin_url"
+                        value="{{ form_data.linkedin_url if form_data and form_data.linkedin_url else (candidate.linkedin_url if candidate and candidate.linkedin_url else '') }}"
+                        placeholder="https://linkedin.com/in/janedoe"
+                        class="block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+                    />
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Optional. Full URL to the candidate's LinkedIn profile.</p>
+            </div>
+
+            <div>
+                <label for="resume_text" class="block text-sm font-medium text-gray-700">
+                    Resume / Summary <span class="text-red-500" aria-hidden="true">*</span>
+                </label>
+                <textarea
+                    name="resume_text"
+                    id="resume_text"
+                    rows="8"
+                    required
+                    placeholder="Paste the candidate's resume or write a professional summary..."
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+                    aria-required="true"
+                >{{ form_data.resume_text if form_data and form_data.resume_text else (candidate.resume_text if candidate and candidate.resume_text else '') }}</textarea>
+                <p class="mt-1 text-xs text-gray-500">Paste the candidate's resume content or provide a professional summary.</p>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                <a
+                    href="{% if candidate %}/candidates/{{ candidate.id }}{% else %}/candidates{% endif %}"
+                    class="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+                >
+                    Cancel
+                </a>
+                <button
+                    type="submit"
+                    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+                >
+                    {% if candidate %}Update Candidate{% else %}Add Candidate{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
